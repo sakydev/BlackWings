@@ -36,21 +36,26 @@ func NewSearchCommand(format string) *cobra.Command {
 			return nil
 		},
 	}
-	searchCommand.Flags().StringVarP(&flags.Query, "query", "q", "", "Search query")
-	searchCommand.Flags().StringSliceVarP(&flags.Apps, "apps", "a", []string{}, "Apps to search")
-	searchCommand.Flags().StringVarP(&flags.Include, "include", "i", "", "Results must include")
-	searchCommand.Flags().StringVarP(&flags.Exclude, "exclude", "e", "", "Results must exclude")
-	searchCommand.Flags().StringSliceVarP(&flags.FileTypes, "file-types", "t", []string{}, "File types to search")
-	searchCommand.Flags().StringVar(&flags.Before, "before", "", "Results before date")
-	searchCommand.Flags().StringVar(&flags.After, "after", "", "Results after date")
-	searchCommand.Flags().StringVarP(&flags.Sort, "sort", "s", "relevance", "Sort results by")
-	searchCommand.Flags().StringVarP(&flags.Order, "order", "o", "desc", "Order results by")
-	searchCommand.Flags().Int64VarP(&flags.Limit, "limit", "l", 20, "Results limit")
-	searchCommand.Flags().Int64VarP(&flags.Offset, "offset", "", 0, "Results offset")
 
-	searchCommand.MarkFlagRequired("query")
+	createSearchFlags(searchCommand, &flags)
 
 	return searchCommand
+}
+
+func createSearchFlags(command *cobra.Command, flags *types.SearchFlags) {
+	command.Flags().StringVarP(&flags.Query, "query", "q", "", "Search query")
+	command.Flags().StringSliceVarP(&flags.Apps, "apps", "a", []string{}, "Apps to search")
+	command.Flags().StringVarP(&flags.Include, "include", "i", "", "Results must include")
+	command.Flags().StringVarP(&flags.Exclude, "exclude", "e", "", "Results must exclude")
+	command.Flags().StringSliceVarP(&flags.FileTypes, "file-types", "t", []string{}, "File types to search")
+	command.Flags().StringVar(&flags.Before, "before", "", "Results before date")
+	command.Flags().StringVar(&flags.After, "after", "", "Results after date")
+	command.Flags().StringVarP(&flags.Sort, "sort", "s", "relevance", "Sort results by")
+	command.Flags().StringVarP(&flags.Order, "order", "o", "desc", "Order results by")
+	command.Flags().Int64VarP(&flags.Limit, "limit", "l", 20, "Results limit")
+	command.Flags().Int64VarP(&flags.Offset, "offset", "", 0, "Results offset")
+
+	command.MarkFlagRequired("query")
 }
 
 func displayOutput(format string, results interface{}) error {
@@ -66,6 +71,7 @@ func displayOutput(format string, results interface{}) error {
 
 	return nil
 }
+
 func throwError(message string, error error) error {
 	return fmt.Errorf("cmd: %s.%s: %s: %w", mainCommand, message, error)
 }
