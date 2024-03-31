@@ -2,12 +2,14 @@ package apps
 
 import (
 	"BlackWings/internal/types"
+	"context"
 	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/samber/do"
 	"google.golang.org/api/gmail/v1"
+	"google.golang.org/api/option"
 )
 
 type GmailMessageResponse struct {
@@ -23,10 +25,10 @@ func InjectGmailService(i *do.Injector) (*GmailService, error) {
 
 type GmailService struct{}
 
-func (s GmailService) Search(options types.SearchFlags, client *http.Client) ([]GmailMessageResponse, error) {
+func (s GmailService) Search(ctx context.Context, options types.SearchFlags, client *http.Client) ([]GmailMessageResponse, error) {
 	var results []GmailMessageResponse
 
-	srv, err := initialize(client)
+	srv, err := initialize(ctx, client)
 	if err != nil {
 		return results, fmt.Errorf("error initializing Gmail service: %v", err)
 	}
@@ -54,8 +56,8 @@ func (s GmailService) Search(options types.SearchFlags, client *http.Client) ([]
 	return results, nil
 }
 
-func initialize(googleService *http.Client) (*gmail.Service, error) {
-	srv, err := gmail.New(googleService)
+func initialize(ctx context.Context, googleService *http.Client) (*gmail.Service, error) {
+	srv, err := gmail.NewService(ctx, option.WithHTTPClient(googleService))
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve Gmail client: %v", err)
 	}

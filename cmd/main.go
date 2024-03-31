@@ -3,6 +3,7 @@ package main
 import (
 	"BlackWings/cmd/search"
 	"BlackWings/internal"
+	"context"
 	"fmt"
 	"os"
 
@@ -14,6 +15,7 @@ import (
 const AppName = "blackwings"
 
 func main() {
+	ctx := context.Background()
 	injector := do.DefaultInjector
 	setup(injector)
 
@@ -30,7 +32,7 @@ func main() {
 
 	coreCommand.PersistentFlags().StringVarP(&format, "format", "f", "json", "Data format to use (default: json)")
 
-	searchCommand := search.NewSearchCommand(format, injector)
+	searchCommand := search.NewSearchCommand(ctx, format, injector)
 
 	coreCommand.AddCommand(searchCommand)
 
