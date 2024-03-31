@@ -5,6 +5,7 @@ import (
 	"BlackWings/internal/types"
 	"BlackWings/internal/utils"
 	"context"
+	"database/sql"
 	"fmt"
 
 	"github.com/samber/do"
@@ -13,7 +14,7 @@ import (
 
 const mainCommand = "search"
 
-func NewSearchCommand(ctx context.Context, format string, i *do.Injector) *cobra.Command {
+func NewSearchCommand(ctx context.Context, database *sql.DB, format string, i *do.Injector) *cobra.Command {
 	var flags types.SearchFlags
 
 	searchCommand := &cobra.Command{
@@ -31,7 +32,7 @@ func NewSearchCommand(ctx context.Context, format string, i *do.Injector) *cobra
 				return throwError("failed to inject search service", err)
 			}
 
-			results, err := searchService.Search(ctx, flags)
+			results, err := searchService.Search(ctx, database, flags)
 			if err != nil {
 				return throwError("failed to search", err)
 			}

@@ -2,12 +2,14 @@ package main
 
 import (
 	"BlackWings/cmd/search"
+	database2 "BlackWings/database"
 	"BlackWings/internal"
 	"context"
 	"fmt"
 	"os"
 
 	"github.com/fatih/color"
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/samber/do"
 	"github.com/spf13/cobra"
 )
@@ -17,6 +19,7 @@ const AppName = "blackwings"
 func main() {
 	ctx := context.Background()
 	injector := do.DefaultInjector
+	database := database2.GetDatabase()
 	setup(injector)
 
 	var format string
@@ -32,7 +35,7 @@ func main() {
 
 	coreCommand.PersistentFlags().StringVarP(&format, "format", "f", "json", "Data format to use (default: json)")
 
-	searchCommand := search.NewSearchCommand(ctx, format, injector)
+	searchCommand := search.NewSearchCommand(ctx, database, format, injector)
 
 	coreCommand.AddCommand(searchCommand)
 
