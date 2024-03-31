@@ -23,17 +23,13 @@ func InjectGmailService(i *do.Injector) (*GmailService, error) {
 
 type GmailService struct{}
 
-func InitializeGmailService(googleService *http.Client) (*gmail.Service, error) {
-	// Create Gmail service
-	srv, err := gmail.New(googleService)
-	if err != nil {
-		return nil, fmt.Errorf("unable to retrieve Gmail client: %v", err)
-	}
-	return srv, nil
-}
-
-func (s GmailService) SearchGmail(options types.SearchFlags, srv *gmail.Service) ([]GmailMessageResponse, error) {
+func (s GmailService) Search(options types.SearchFlags, client *http.Client) ([]GmailMessageResponse, error) {
 	var results []GmailMessageResponse
+
+	srv, err := initialize(client)
+	if err != nil {
+		return results, fmt.Errorf("error initializing Gmail service: %v", err)
+	}
 
 	user := "me"
 	query := s.buildQuery(srv, options)
@@ -56,6 +52,14 @@ func (s GmailService) SearchGmail(options types.SearchFlags, srv *gmail.Service)
 	}
 
 	return results, nil
+}
+
+func initialize(googleService *http.Client) (*gmail.Service, error) {
+	srv, err := gmail.New(googleService)
+	if err != nil {
+		return nil, fmt.Errorf("unable to retrieve Gmail client: %v", err)
+	}
+	return srv, nil
 }
 
 func (s GmailService) buildQuery(srv *gmail.Service, options types.SearchFlags) *gmail.UsersMessagesListCall {
