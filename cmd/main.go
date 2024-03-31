@@ -1,21 +1,37 @@
 package main
 
 import (
-	"BlackWings/internal/services/apps"
-	"BlackWings/internal/services/integrations"
-	"log"
+	"BlackWings/cmd/search"
+	"fmt"
+	"os"
+
+	"github.com/fatih/color"
+	"github.com/spf13/cobra"
 )
 
+const AppName = "blackwings"
+
 func main() {
-	// Initialize Gmail service
-	googleService, err := integrations.InitializeGoogleService()
-	if err != nil {
-		log.Fatalf("Unable to initialize Gmail service: %v", err)
+	var format string
+
+	coreCommand := &cobra.Command{
+		Use:   AppName,
+		Short: "Search everywhere",
+		Long:  `A command line utility to search everywhere.`,
+		Run: func(cmd *cobra.Command, args []string) {
+			fmt.Printf("Use '%s --help' for more information.\n", AppName)
+		},
 	}
 
-	gmailService, err := apps.InitializeGmailService(googleService)
+	coreCommand.PersistentFlags().StringVarP(&format, "format", "f", "json", "Data format to use (default: json)")
 
-	// Search for "hello" in Gmail
-	query := "hello"
-	apps.SearchGmail(query, gmailService)
+	searchCommand := search.NewSearchCommand(format)
+
+	coreCommand.AddCommand(searchCommand)
+
+	err := coreCommand.Execute()
+	if err != nil {
+		fmt.Println(color.RedString("Error: %v\n", err))
+		os.Exit(1)
+	}
 }
