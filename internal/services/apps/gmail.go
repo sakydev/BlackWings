@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/samber/do"
 	"google.golang.org/api/gmail/v1"
 )
 
@@ -16,6 +17,12 @@ type GmailMessageResponse struct {
 	Snippet string
 }
 
+func InjectGmailService(i *do.Injector) (*GmailService, error) {
+	return &GmailService{}, nil
+}
+
+type GmailService struct{}
+
 func InitializeGmailService(googleService *http.Client) (*gmail.Service, error) {
 	// Create Gmail service
 	srv, err := gmail.New(googleService)
@@ -25,11 +32,12 @@ func InitializeGmailService(googleService *http.Client) (*gmail.Service, error) 
 	return srv, nil
 }
 
-func SearchGmail(options types.SearchFlags, srv *gmail.Service) ([]GmailMessageResponse, error) {
+func (s GmailService) SearchGmail(options types.SearchFlags, srv *gmail.Service) ([]GmailMessageResponse, error) {
 	var results []GmailMessageResponse
 
 	user := "me"
-	messages, err := srv.Users.Messages.List(user).Q(options.Query).MaxResults(options.Limit).Do()
+	query := s.buildQuery(srv, options)
+	messages, err := query.Do()
 	if err != nil {
 		return results, fmt.Errorf("error retrieving messages: %v", err)
 	}
@@ -39,7 +47,7 @@ func SearchGmail(options types.SearchFlags, srv *gmail.Service) ([]GmailMessageR
 	}
 
 	for _, message := range messages.Messages {
-		messageDetails, err := getMessageDetails(srv, user, message.Id)
+		messageDetails, err := s.getMessageDetails(srv, user, message.Id)
 		if err != nil {
 			return results, err
 		}
@@ -50,7 +58,18 @@ func SearchGmail(options types.SearchFlags, srv *gmail.Service) ([]GmailMessageR
 	return results, nil
 }
 
-func getMessageDetails(srv *gmail.Service, user string, messageID string) (GmailMessageResponse, error) {
+func (s GmailService) buildQuery(srv *gmail.Service, options types.SearchFlags) *gmail.UsersMessagesListCall {
+	user := "me"
+	query := srv.Users.Messages.List(user).Q(options.Query)
+
+	if options.Limit > 0 {
+		query.MaxResults(options.Limit)
+	}
+
+	return query
+}
+
+func (s GmailService) getMessageDetails(srv *gmail.Service, user string, messageID string) (GmailMessageResponse, error) {
 	message, err := srv.Users.Messages.Get(user, messageID).Do()
 	if err != nil {
 		return GmailMessageResponse{}, fmt.Errorf("error retrieving message %s: %v", messageID, err)

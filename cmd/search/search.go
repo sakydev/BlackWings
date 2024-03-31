@@ -6,12 +6,13 @@ import (
 	"BlackWings/internal/utils"
 	"fmt"
 
+	"github.com/samber/do"
 	"github.com/spf13/cobra"
 )
 
 const mainCommand = "search"
 
-func NewSearchCommand(format string) *cobra.Command {
+func NewSearchCommand(format string, i *do.Injector) *cobra.Command {
 	var flags types.SearchFlags
 
 	searchCommand := &cobra.Command{
@@ -24,7 +25,12 @@ func NewSearchCommand(format string) *cobra.Command {
 				return throwError("failed to validate search flags", validationError)
 			}
 
-			results, err := services.Search(flags)
+			searchService, err := services.InjectSearchService(i)
+			if err != nil {
+				return throwError("failed to inject search service", err)
+			}
+
+			results, err := searchService.Search(flags)
 			if err != nil {
 				return throwError("failed to search", err)
 			}

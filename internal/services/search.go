@@ -5,13 +5,21 @@ import (
 	"BlackWings/internal/services/integrations"
 	"BlackWings/internal/types"
 	"fmt"
+
+	"github.com/samber/do"
 )
 
-type SearchService interface {
-	Search() string
+func InjectSearchService(i *do.Injector) (*SearchService, error) {
+	return &SearchService{
+		gmailService: do.MustInvoke[*apps.GmailService](i),
+	}, nil
 }
 
-func Search(options types.SearchFlags) ([]apps.GmailMessageResponse, error) {
+type SearchService struct {
+	gmailService *apps.GmailService
+}
+
+func (s SearchService) Search(options types.SearchFlags) ([]apps.GmailMessageResponse, error) {
 	var results []apps.GmailMessageResponse
 	googleService, err := integrations.InitializeGoogleService()
 	if err != nil {
@@ -20,5 +28,5 @@ func Search(options types.SearchFlags) ([]apps.GmailMessageResponse, error) {
 
 	gmailService, err := apps.InitializeGmailService(googleService)
 
-	return apps.SearchGmail(options, gmailService)
+	return s.gmailService.SearchGmail(options, gmailService)
 }
