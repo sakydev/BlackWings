@@ -27,6 +27,9 @@ func (s SearchService) Search(options types.SearchFlags) ([]apps.GmailMessageRes
 	}
 
 	gmailService, err := apps.InitializeGmailService(googleService)
+	if err != nil {
+		return results, fmt.Errorf("error initializing Gmail service: %v", err)
+	}
 
 	return s.gmailService.SearchGmail(options, gmailService)
 }

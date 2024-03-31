@@ -79,5 +79,5 @@ func displayOutput(format string, results interface{}) error {
 }
 
 func throwError(message string, error error) error {
-	return fmt.Errorf("cmd: %s.%s: %s: %w", mainCommand, message, error)
+	return fmt.Errorf("cmd: %s: %s: %w", mainCommand, message, error)
 }
