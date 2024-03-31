@@ -2,16 +2,23 @@ package main
 
 import (
 	"BlackWings/cmd/search"
+	"BlackWings/internal"
+	"context"
 	"fmt"
 	"os"
 
 	"github.com/fatih/color"
+	"github.com/samber/do"
 	"github.com/spf13/cobra"
 )
 
 const AppName = "blackwings"
 
 func main() {
+	ctx := context.Background()
+	injector := do.DefaultInjector
+	setup(injector)
+
 	var format string
 
 	coreCommand := &cobra.Command{
@@ -25,7 +32,7 @@ func main() {
 
 	coreCommand.PersistentFlags().StringVarP(&format, "format", "f", "json", "Data format to use (default: json)")
 
-	searchCommand := search.NewSearchCommand(format)
+	searchCommand := search.NewSearchCommand(ctx, format, injector)
 
 	coreCommand.AddCommand(searchCommand)
 
@@ -34,4 +41,8 @@ func main() {
 		fmt.Println(color.RedString("Error: %v\n", err))
 		os.Exit(1)
 	}
+}
+
+func setup(injector *do.Injector) {
+	internal.WireDependencies(injector)
 }

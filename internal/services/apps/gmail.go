@@ -2,34 +2,44 @@ package apps
 
 import (
 	"BlackWings/internal/types"
+	"context"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
+	"github.com/guregu/null/v5"
+	"github.com/samber/do"
 	"google.golang.org/api/gmail/v1"
+	"google.golang.org/api/option"
 )
 
+const User = "me"
+
 type GmailMessageResponse struct {
-	Subject string
-	Sender  string
-	Date    time.Time
-	Snippet string
+	Subject     string
+	SenderName  null.String
+	SenderEmail string
+	Date        time.Time
+	Snippet     string
 }
 
-func InitializeGmailService(googleService *http.Client) (*gmail.Service, error) {
-	// Create Gmail service
-	srv, err := gmail.New(googleService)
-	if err != nil {
-		return nil, fmt.Errorf("unable to retrieve Gmail client: %v", err)
-	}
-	return srv, nil
+func InjectGmailService(i *do.Injector) (*GmailService, error) {
+	return &GmailService{}, nil
 }
 
-func SearchGmail(options types.SearchFlags, srv *gmail.Service) ([]GmailMessageResponse, error) {
+type GmailService struct{}
+
+func (s GmailService) Search(ctx context.Context, options types.SearchFlags, client *http.Client) ([]GmailMessageResponse, error) {
 	var results []GmailMessageResponse
 
-	user := "me"
-	messages, err := srv.Users.Messages.List(user).Q(options.Query).MaxResults(options.Limit).Do()
+	srv, err := initialize(ctx, client)
+	if err != nil {
+		return results, fmt.Errorf("error initializing Gmail service: %v", err)
+	}
+
+	query := s.buildQuery(srv, options)
+	messages, err := query.Do()
 	if err != nil {
 		return results, fmt.Errorf("error retrieving messages: %v", err)
 	}
@@ -39,7 +49,7 @@ func SearchGmail(options types.SearchFlags, srv *gmail.Service) ([]GmailMessageR
 	}
 
 	for _, message := range messages.Messages {
-		messageDetails, err := getMessageDetails(srv, user, message.Id)
+		messageDetails, err := s.getMessageDetails(srv, User, message.Id)
 		if err != nil {
 			return results, err
 		}
@@ -50,7 +60,26 @@ func SearchGmail(options types.SearchFlags, srv *gmail.Service) ([]GmailMessageR
 	return results, nil
 }
 
-func getMessageDetails(srv *gmail.Service, user string, messageID string) (GmailMessageResponse, error) {
+func initialize(ctx context.Context, googleService *http.Client) (*gmail.Service, error) {
+	srv, err := gmail.NewService(ctx, option.WithHTTPClient(googleService))
+	if err != nil {
+		return nil, fmt.Errorf("unable to retrieve Gmail client: %v", err)
+	}
+	return srv, nil
+}
+
+func (s GmailService) buildQuery(srv *gmail.Service, options types.SearchFlags) *gmail.UsersMessagesListCall {
+	user := "me"
+	query := srv.Users.Messages.List(user).Q(options.Query)
+
+	if options.Limit > 0 {
+		query.MaxResults(options.Limit)
+	}
+
+	return query
+}
+
+func (s GmailService) getMessageDetails(srv *gmail.Service, user string, messageID string) (GmailMessageResponse, error) {
 	message, err := srv.Users.Messages.Get(user, messageID).Do()
 	if err != nil {
 		return GmailMessageResponse{}, fmt.Errorf("error retrieving message %s: %v", messageID, err)
@@ -61,27 +90,52 @@ func getMessageDetails(srv *gmail.Service, user string, messageID string) (Gmail
 		return GmailMessageResponse{}, fmt.Errorf("error retrieving message %s: %v", message.Id, err)
 	}
 
-	var subject string
-	var sender string
+	var senderName, senderEmail, subject string
 	for _, header := range msg.Payload.Headers {
 		if header.Name == "Subject" {
 			subject = header.Value
-			break
 		} else if header.Name == "From" {
-			sender = header.Value
+			senderName, senderEmail = s.extractSender(header.Value)
 		}
 	}
 
-	// Extract date
-	/*date, err := time.Parse(time.RFC822, msg.Payload.Headers[1].Value)
+	readableTime, err := s.extractTime(msg.Payload.Headers[1].Value)
 	if err != nil {
 		return GmailMessageResponse{}, fmt.Errorf("error parsing date: %v", err)
-	}*/
+	}
 
 	return GmailMessageResponse{
-		Subject: subject,
-		Sender:  sender,
-		//Date:    message.Payload.Headers[1].Value,
-		Snippet: msg.Snippet,
+		Subject:     subject,
+		SenderName:  null.StringFrom(senderName),
+		SenderEmail: senderEmail,
+		Date:        readableTime,
+		Snippet:     msg.Snippet,
 	}, nil
+}
+
+func (s GmailService) extractSender(fromHeader string) (name, email string) {
+	start := strings.Index(fromHeader, "<")
+	end := strings.Index(fromHeader, ">")
+
+	if start != -1 && end != -1 {
+		name = strings.TrimSpace(fromHeader[:start])
+		email = strings.TrimSpace(fromHeader[start+1 : end])
+
+		return name, email
+	}
+
+	return name, fromHeader
+}
+
+func (s GmailService) extractTime(timestamp string) (time.Time, error) {
+	timeLayout := "Mon, 02 Jan 2006 15:04:05 -0700 (MST)"
+
+	parts := strings.Split(timestamp, ";")
+	if len(parts) != 2 {
+		return time.Time{}, fmt.Errorf("invalid timestamp format")
+	}
+
+	date := strings.TrimSpace(parts[1])
+
+	return time.Parse(timeLayout, date)
 }
