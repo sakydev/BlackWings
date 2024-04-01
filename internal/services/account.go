@@ -22,3 +22,11 @@ type AccountService struct {
 func (s AccountService) Connect(ctx context.Context, database *sql.DB, app types.App, accountDetails types.Account) (int64, error) {
 	return s.accountRepo.Create(ctx, database, app, accountDetails)
 }
+
+func (s AccountService) List(ctx context.Context, database *sql.DB, appIDs []int64) ([]types.Account, error) {
+	if len(appIDs) == 0 {
+		return s.accountRepo.List(ctx, database)
+	}
+
+	return s.accountRepo.ListByApps(ctx, database, appIDs)
+}
