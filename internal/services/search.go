@@ -5,6 +5,7 @@ import (
 	"BlackWings/internal/services/integrations"
 	"BlackWings/internal/types"
 	"context"
+	"database/sql"
 	"fmt"
 
 	"github.com/samber/do"
@@ -20,7 +21,7 @@ type SearchService struct {
 	gmailService *apps.GmailService
 }
 
-func (s SearchService) Search(ctx context.Context, options types.SearchFlags) ([]apps.GmailMessageResponse, error) {
+func (s SearchService) Search(ctx context.Context, database *sql.DB, options types.SearchFlags) ([]apps.GmailMessageResponse, error) {
 	var results []apps.GmailMessageResponse
 	googleService, err := integrations.InitializeGoogleService()
 	if err != nil {
