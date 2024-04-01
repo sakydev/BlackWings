@@ -9,16 +9,16 @@ import (
 	"github.com/samber/do"
 )
 
-func InjectAppService(i *do.Injector) (*AppService, error) {
-	return &AppService{
-		appRepo: do.MustInvoke[*repositories.AppRepository](i),
+func InjectAccountService(i *do.Injector) (*AccountService, error) {
+	return &AccountService{
+		accountRepo: do.MustInvoke[repositories.AccountRepository](i),
 	}, nil
 }
 
-type AppService struct {
-	appRepo *repositories.AppRepository
+type AccountService struct {
+	accountRepo repositories.AccountRepository
 }
 
-func (s AppService) Connect(ctx context.Context, database *sql.DB, options types.AppFlags) (string, error) {
+func (s AccountService) Connect(ctx context.Context, database *sql.DB, options types.AppFlags) (string, error) {
 	return "", nil
 }

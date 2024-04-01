@@ -9,37 +9,37 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const mainCommand = "accounts"
-const connectCommand = "connect"
+const mainCommandName = "accounts"
+const connectCommandName = "connect"
 
-func NewAppCommand(cmdConfig types.CommandConfiguration) *cobra.Command {
-	var flags types.AppFlags
+func NewAccountCommands(cmdConfig types.CommandConfiguration) *cobra.Command {
+	//var flags types.AppFlags
 
-	appCommands := &cobra.Command{
-		Use:   mainCommand,
+	accountCommands := &cobra.Command{
+		Use:   mainCommandName,
 		Short: "Add, remove, or list apps",
 		Long:  `Add, remove, or list apps.`,
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Printf("Use '%s --help' for more information.\n", mainCommand)
+			fmt.Printf("Use '%s --help' for more information.\n", mainCommandName)
 		},
 	}
 
 	connectCommand := &cobra.Command{
-		Use:   connectCommand,
+		Use:   connectCommandName,
 		Short: "Connect a new account",
-		Long:  `Add, remove, or list account.`,
+		Long:  `Connect new account for searching.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			/*validationError := services.ValidateSearchFlags(flags)
 			if validationError != nil {
 				return throwError("failed to validate search flags", validationError)
 			}*/
 
-			appService, err := services.InjectAppService(cmdConfig.Injector)
+			_, err := services.InjectAccountService(cmdConfig.Injector)
 			if err != nil {
 				return throwError("failed to inject app service", err)
 			}
 
-			results, err := appService.Connect(cmdConfig.Context, cmdConfig.Database, flags)
+			/*results, err := accountService.Connect(cmdConfig.Context, cmdConfig.Database, flags)
 			if err != nil {
 				return throwError("failed to connect app", err)
 			}
@@ -47,14 +47,14 @@ func NewAppCommand(cmdConfig types.CommandConfiguration) *cobra.Command {
 			err = displayOutput(cmdConfig.Format, results)
 			if err != nil {
 				return throwError("failed to display output", err)
-			}
+			}*/
 			return nil
 		},
 	}
 
-	appCommands.AddCommand(connectCommand)
+	accountCommands.AddCommand(connectCommand)
 
-	return appCommands
+	return accountCommands
 }
 
 func displayOutput(format string, results interface{}) error {
@@ -72,5 +72,5 @@ func displayOutput(format string, results interface{}) error {
 }
 
 func throwError(message string, error error) error {
-	return fmt.Errorf("cmd: %s: %s: %w", mainCommand, message, error)
+	return fmt.Errorf("cmd: %s: %s: %w", mainCommandName, message, error)
 }

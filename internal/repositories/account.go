@@ -8,17 +8,17 @@ import (
 	"github.com/samber/do"
 )
 
-func InjectAppRepository(i *do.Injector) (AppRepository, error) {
-	return AppImpl{}, nil
+func InjectAccountRepository(i *do.Injector) (AccountRepository, error) {
+	return AccountImpl{}, nil
 }
 
-type AppImpl struct{}
+type AccountImpl struct{}
 
-type AppRepository interface {
+type AccountRepository interface {
 	Create(ctx context.Context, database *sql.DB, app types.App) (int64, error)
 }
 
-func (impl AppImpl) Create(ctx context.Context, database *sql.DB, app types.App) (int64, error) {
+func (impl AccountImpl) Create(ctx context.Context, database *sql.DB, app types.App) (int64, error) {
 	appID := int64(0)
 	rows, err := database.ExecContext(ctx, `
 		INSERT INTO apps

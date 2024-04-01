@@ -1,6 +1,7 @@
 package main
 
 import (
+	"BlackWings/cmd/account"
 	"BlackWings/cmd/search"
 	db "BlackWings/database"
 	"BlackWings/internal"
@@ -50,10 +51,10 @@ func main() {
 		Format:   format,
 	}
 	searchCommand := search.NewSearchCommand(commandConfiguration)
-	appCommand := account.NewAppCommand(commandConfiguration)
+	accountCommands := account.NewAccountCommands(commandConfiguration)
 
 	coreCommand.AddCommand(searchCommand)
-	coreCommand.AddCommand(appCommand)
+	coreCommand.AddCommand(accountCommands)
 
 	err := coreCommand.Execute()
 	if err != nil {
