@@ -1,6 +1,6 @@
 -- +goose Up
 -- +goose StatementBegin
-CREATE TABLE credentials (
+CREATE TABLE accounts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     client_id TEXT,
     client_secret TEXT,
@@ -12,5 +12,5 @@ CREATE TABLE credentials (
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE credentials;
+DROP TABLE accounts;
 -- +goose StatementEnd

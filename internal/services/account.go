@@ -19,6 +19,6 @@ type AppService struct {
 	appRepo *repositories.AppRepository
 }
 
-func (s AppService) Create(ctx context.Context, database *sql.DB, options types.AppFlags) (string, error) {
+func (s AppService) Connect(ctx context.Context, database *sql.DB, options types.AppFlags) (string, error) {
 	return "", nil
 }
