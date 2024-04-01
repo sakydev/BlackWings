@@ -21,8 +21,10 @@ func NewAccountCommands(cmdConfig types.CommandConfiguration) *cobra.Command {
 	}
 
 	connectCommand := NewAccountConnectCommand(cmdConfig)
+	listCommand := NewAccountListCommand(cmdConfig)
 
 	accountCommands.AddCommand(connectCommand)
+	accountCommands.AddCommand(listCommand)
 
 	return accountCommands
 }
