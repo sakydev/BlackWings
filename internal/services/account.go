@@ -19,6 +19,6 @@ type AccountService struct {
 	accountRepo repositories.AccountRepository
 }
 
-func (s AccountService) Connect(ctx context.Context, database *sql.DB, options types.AppFlags) (string, error) {
-	return "", nil
+func (s AccountService) Connect(ctx context.Context, database *sql.DB, app types.App, accountDetails types.Account) (int64, error) {
+	return s.accountRepo.Create(ctx, database, app, accountDetails)
 }

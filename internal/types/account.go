@@ -1,10 +1,7 @@
 package types
 
-type App struct {
-	Name     string
-	Provider string
-}
-
-type AppFlags struct {
-	Name string
+type Account struct {
+	ClientID     string
+	ClientSecret string
+	Raw          string
 }

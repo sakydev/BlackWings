@@ -22,7 +22,7 @@ func (impl AppImpl) List(ctx context.Context, database *sql.DB) (map[string]type
 	apps := make(map[string]types.App)
 
 	rows, err := database.QueryContext(ctx, `
-		SELECT name, provider
+		SELECT id, name, provider
 		FROM apps
 	`)
 	if err != nil {
@@ -31,13 +31,14 @@ func (impl AppImpl) List(ctx context.Context, database *sql.DB) (map[string]type
 	defer rows.Close()
 
 	for rows.Next() {
+		var id int64
 		var name, provider string
-		err = rows.Scan(&name, &provider)
+		err = rows.Scan(&id, &name, &provider)
 		if err != nil {
 			return apps, err
 		}
 
-		apps[name] = types.App{Name: name, Provider: provider}
+		apps[name] = types.App{ID: id, Name: name, Provider: provider}
 	}
 
 	return apps, nil
