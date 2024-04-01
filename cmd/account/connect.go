@@ -85,6 +85,13 @@ func askAccountDetails(app types.App) (types.Account, error) {
 
 	prompts := []*survey.Question{
 		{
+			Name: "name",
+			Prompt: &survey.Input{
+				Message: "Account identifier e.g whatever distinguishes this account:",
+			},
+			Validate: survey.Required,
+		},
+		{
 			Name: "clientID",
 			Prompt: &survey.Input{
 				Message: "Enter Client ID:",

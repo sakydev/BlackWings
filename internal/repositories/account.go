@@ -25,9 +25,9 @@ func (impl AccountImpl) Create(ctx context.Context, database *sql.DB, app types.
 	accountID := int64(0)
 	rows, err := database.ExecContext(ctx, `
 		INSERT INTO accounts
-		(client_id, client_secret, raw, app_id)
-		VALUES ($1, $2, $3, $4)
-	`, accountDetails.ClientID, accountDetails.ClientSecret, accountDetails.Raw, app.ID)
+		(name, client_id, client_secret, raw, app_id)
+		VALUES ($1, $2, $3, $4, $5)
+	`, accountDetails.Name, accountDetails.ClientID, accountDetails.ClientSecret, accountDetails.Raw, app.ID)
 	if err != nil {
 		return accountID, err
 	}
@@ -44,7 +44,7 @@ func (impl AccountImpl) List(ctx context.Context, database *sql.DB) ([]types.Acc
 	var accounts []types.Account
 
 	rows, err := database.QueryContext(ctx, `
-		SELECT ac.client_id, ac.client_secret, ac.raw, ap.id, ap.name, ap.provider
+		SELECT ac.name, ac.client_id, ac.client_secret, ac.raw, ap.id, ap.name, ap.provider
 		FROM accounts ac
 		INNER JOIN apps ap ON ac.app_id = ap.id
 	`)
@@ -62,9 +62,9 @@ func (impl AccountImpl) ListByApps(ctx context.Context, database *sql.DB, appIDs
 	var accounts []types.Account
 
 	rows, err := database.QueryContext(ctx, `
-		SELECT accounts.client_id, accounts.client_secret, accounts.raw, ap.id, ap.name, ap.provider
-		FROM accounts
-		INNER JOIN apps ap ON accounts.app_id = ap.id
+		SELECT ac.name, ac.client_id, ac.client_secret, ac.raw, ap.id, ap.name, ap.provider
+		FROM accounts ac
+		INNER JOIN apps ap ON ac.app_id = ap.id
 		WHERE ap.id IN ($1)
 	`, utils.ImplodeInt64(appIDs, ","))
 	if err != nil {
@@ -83,20 +83,21 @@ func processAccountRows(rows *sql.Rows) ([]types.Account, error) {
 	for rows.Next() {
 		var currentAccount types.Account
 		var appID int
-		var clientID, clientSecret, raw, name, provider string
+		var accountName, clientID, clientSecret, raw, appName, provider string
 
-		err := rows.Scan(&clientID, &clientSecret, &raw, &appID, &name, &provider)
+		err := rows.Scan(&accountName, &clientID, &clientSecret, &raw, &appID, &appName, &provider)
 		if err != nil {
 			return accounts, err
 		}
 
 		currentAccount = types.Account{
+			Name:         accountName,
 			ClientID:     clientID,
 			ClientSecret: clientSecret,
 			Raw:          raw,
 			App: types.App{
 				ID:       int64(appID),
-				Name:     name,
+				Name:     appName,
 				Provider: provider,
 			},
 		}

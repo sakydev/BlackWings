@@ -2,6 +2,7 @@
 -- +goose StatementBegin
 CREATE TABLE accounts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name varchar NOT NULL,
     client_id TEXT,
     client_secret TEXT,
     raw TEXT,
