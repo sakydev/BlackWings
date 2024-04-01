@@ -21,6 +21,10 @@ type AppService struct {
 	appRepo repositories.AppRepository
 }
 
+func (s AppService) GetByName(ctx context.Context, database *sql.DB, name string) (types.App, error) {
+	return s.appRepo.GetByName(ctx, database, name)
+}
+
 func (s AppService) List(ctx context.Context, database *sql.DB) (map[string]types.App, error) {
 	return s.appRepo.List(ctx, database)
 }

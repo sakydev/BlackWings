@@ -19,6 +19,8 @@ type AccountRepository interface {
 	Create(ctx context.Context, database *sql.DB, app types.App, accountDetails types.Account) (int64, error)
 	List(ctx context.Context, database *sql.DB) ([]types.Account, error)
 	ListByApps(ctx context.Context, database *sql.DB, appIDs []int64) ([]types.Account, error)
+	GetIDByIdentifier(ctx context.Context, database *sql.DB, name string) (int64, error)
+	Delete(ctx context.Context, database *sql.DB, accountID int64) error
 }
 
 func (impl AccountImpl) Create(ctx context.Context, database *sql.DB, app types.App, accountDetails types.Account) (int64, error) {
@@ -75,6 +77,32 @@ func (impl AccountImpl) ListByApps(ctx context.Context, database *sql.DB, appIDs
 	accounts, err = processAccountRows(rows)
 
 	return accounts, err
+}
+
+func (impl AccountImpl) GetIDByIdentifier(ctx context.Context, database *sql.DB, name string) (int64, error) {
+	var accountID int64
+
+	row := database.QueryRowContext(ctx, `
+		SELECT id
+		FROM accounts
+		WHERE name = $1
+	`, name)
+
+	err := row.Scan(&accountID)
+	if err != nil {
+		return accountID, err
+	}
+
+	return accountID, nil
+}
+
+func (impl AccountImpl) Delete(ctx context.Context, database *sql.DB, accountID int64) error {
+	_, err := database.ExecContext(ctx, `
+		DELETE FROM accounts
+		WHERE id = $1
+	`, accountID)
+
+	return err
 }
 
 func processAccountRows(rows *sql.Rows) ([]types.Account, error) {

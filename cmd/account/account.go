@@ -22,9 +22,11 @@ func NewAccountCommands(cmdConfig types.CommandConfiguration) *cobra.Command {
 
 	connectCommand := NewAccountConnectCommand(cmdConfig)
 	listCommand := NewAccountListCommand(cmdConfig)
+	deleteCommand := NewAccountDeleteCommand(cmdConfig)
 
 	accountCommands.AddCommand(connectCommand)
 	accountCommands.AddCommand(listCommand)
+	accountCommands.AddCommand(deleteCommand)
 
 	return accountCommands
 }
