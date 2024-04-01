@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"BlackWings/internal/types"
+	"BlackWings/internal/utils"
 	"context"
 	"database/sql"
 
@@ -16,6 +17,8 @@ type AccountImpl struct{}
 
 type AccountRepository interface {
 	Create(ctx context.Context, database *sql.DB, app types.App, accountDetails types.Account) (int64, error)
+	List(ctx context.Context, database *sql.DB) ([]types.Account, error)
+	ListByApps(ctx context.Context, database *sql.DB, appIDs []int64) ([]types.Account, error)
 }
 
 func (impl AccountImpl) Create(ctx context.Context, database *sql.DB, app types.App, accountDetails types.Account) (int64, error) {
@@ -35,4 +38,71 @@ func (impl AccountImpl) Create(ctx context.Context, database *sql.DB, app types.
 	}
 
 	return accountID, nil
+}
+
+func (impl AccountImpl) List(ctx context.Context, database *sql.DB) ([]types.Account, error) {
+	var accounts []types.Account
+
+	rows, err := database.QueryContext(ctx, `
+		SELECT ac.client_id, ac.client_secret, ac.raw, ap.id, ap.name, ap.provider
+		FROM accounts ac
+		INNER JOIN apps ap ON ac.app_id = ap.id
+	`)
+	if err != nil {
+		return accounts, err
+	}
+	defer rows.Close()
+
+	accounts, err = processAccountRows(rows)
+
+	return accounts, nil
+}
+
+func (impl AccountImpl) ListByApps(ctx context.Context, database *sql.DB, appIDs []int64) ([]types.Account, error) {
+	var accounts []types.Account
+
+	rows, err := database.QueryContext(ctx, `
+		SELECT accounts.client_id, accounts.client_secret, accounts.raw, ap.id, ap.name, ap.provider
+		FROM accounts
+		INNER JOIN apps ap ON accounts.app_id = ap.id
+		WHERE ap.id IN ($1)
+	`, utils.ImplodeInt64(appIDs, ","))
+	if err != nil {
+		return accounts, err
+	}
+	defer rows.Close()
+
+	accounts, err = processAccountRows(rows)
+
+	return accounts, err
+}
+
+func processAccountRows(rows *sql.Rows) ([]types.Account, error) {
+	var accounts []types.Account
+
+	for rows.Next() {
+		var currentAccount types.Account
+		var appID int
+		var clientID, clientSecret, raw, name, provider string
+
+		err := rows.Scan(&clientID, &clientSecret, &raw, &appID, &name, &provider)
+		if err != nil {
+			return accounts, err
+		}
+
+		currentAccount = types.Account{
+			ClientID:     clientID,
+			ClientSecret: clientSecret,
+			Raw:          raw,
+			App: types.App{
+				ID:       int64(appID),
+				Name:     name,
+				Provider: provider,
+			},
+		}
+
+		accounts = append(accounts, currentAccount)
+	}
+
+	return accounts, nil
 }
