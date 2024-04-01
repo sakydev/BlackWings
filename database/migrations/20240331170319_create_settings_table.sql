@@ -2,7 +2,7 @@
 -- +goose StatementBegin
 CREATE TABLE settings (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  name varchar NOT NULL,
+  name varchar UNIQUE NOT NULL,
   value TEXT
 );
 -- +goose StatementEnd
