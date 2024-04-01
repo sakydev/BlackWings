@@ -23,7 +23,8 @@ migrate-down: ## Revert all open migrations
 	goose -dir $(MIGRATIONS_DIR) sqlite3 $(DATABASE_FILE) down
 
 migrate-fresh: ## Drop database and run all migrations
-	make migrate-down && make migrate-up
+	rm -rf $(DATABASE_FILE) && touch $(DATABASE_FILE)
+	make migrate-up
 
 migrate-create: ## Create a new migration
 	goose -dir $(MIGRATIONS_DIR) create $(NAME) sql
