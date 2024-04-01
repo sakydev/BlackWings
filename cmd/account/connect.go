@@ -9,11 +9,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const commandName = "connect"
+const connectCommandName = "connect"
 
 func NewAccountConnectCommand(cmdConfig types.CommandConfiguration) *cobra.Command {
 	connectCommand := &cobra.Command{
-		Use:   commandName,
+		Use:   connectCommandName,
 		Short: "Connect a new account",
 		Long:  `Connect new account for searching.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
