@@ -1,7 +1,8 @@
 package types
 
 type Account struct {
-	ClientID     string
-	ClientSecret string
-	Raw          string
+	ClientID     string `json:"clientId"`
+	ClientSecret string `json:"clientSecret"`
+	Raw          string `json:"raw"`
+	App          App    `json:"app"`
 }
