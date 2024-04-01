@@ -15,24 +15,24 @@ func InjectAccountRepository(i *do.Injector) (AccountRepository, error) {
 type AccountImpl struct{}
 
 type AccountRepository interface {
-	Create(ctx context.Context, database *sql.DB, app types.App) (int64, error)
+	Create(ctx context.Context, database *sql.DB, app types.App, accountDetails types.Account) (int64, error)
 }
 
-func (impl AccountImpl) Create(ctx context.Context, database *sql.DB, app types.App) (int64, error) {
-	appID := int64(0)
+func (impl AccountImpl) Create(ctx context.Context, database *sql.DB, app types.App, accountDetails types.Account) (int64, error) {
+	accountID := int64(0)
 	rows, err := database.ExecContext(ctx, `
-		INSERT INTO apps
-		(name, provider)
-		VALUES ($1, $2)
-	`, app.Name, app.Provider)
+		INSERT INTO accounts
+		(client_id, client_secret, raw, app_id)
+		VALUES ($1, $2, $3, $4)
+	`, accountDetails.ClientID, accountDetails.ClientSecret, accountDetails.Raw, app.ID)
 	if err != nil {
-		return appID, err
+		return accountID, err
 	}
 
-	appID, err = rows.LastInsertId()
+	accountID, err = rows.LastInsertId()
 	if err != nil {
-		return appID, err
+		return accountID, err
 	}
 
-	return appID, nil
+	return accountID, nil
 }
