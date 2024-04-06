@@ -1,13 +1,49 @@
 # BlackWings
-CLI to search everywhere
+![Go](https://img.shields.io/badge/Go-00ADD8?logo=go&logoColor=white) ![Chi](https://img.shields.io/badge/Chi-02A9E0?logo=go&logoColor=white) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-336791?logo=postgresql&logoColor=white) ![Cobra](https://img.shields.io/badge/Cobra-02A9E0?logo=go&logoColor=white) ![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)
+
+A command line tool to search across your entire digital footprint. This will include essential apps like Gmail, Drive, Dropbox, Jira, Slack, Confluence and more.
+
+### Why
+I often encounter situations where I remember something but can't remember where it exists. This can include documentation, technical discussions, and more. I felt the need for a uniform tool that has wings into my essential apps and can retrieve what I'm looking for. 
+
+BlackWings is a Go-powered CLI built with Cobra and integrates with popular APIs. It authenticates once and uses tokens for further refreshses. You can add an unlimited number of accounts
+
+### Commands
+#### 1. Search
+Search command allows you to find items matching criteria
 
 ```bash
-blackwings search --query "search query" --apps "app1,app2,app3" --include "include1,include2,include3"
+# list options
+blackwings search -h
+
+# search across all connected apps
+blackwings search --query "search query"
+
+# limit search to specific apps
+ blackwings search --query "hello" --apps "app1,app2,app3"
+
+# include or exclude items that contain certain word
+blackwings search --query "hello" --include "include1,include2" --exclude "excludeA,excludeB"
+
+# search limit and pagination
 blackwings search --query "search query" --limit 10 --offset 10
+```
 
-blackwings apps connect 
-blackwings apps list --provider "provider1,provider2"
-blackwings apps disconnect 
+#### 2. Accounts
+Accounts commands allow adding and removing accounts
+```bash
+# list options
+blackwings accounts -h
 
+# connect a new account in interactive mode
+blackwings accounts connect
 
+# list all accounts
+blackwings accounts list
+
+# list accounts for a specific provider only e.g gmail
+blackwings accounts list --provider "gmail"
+
+# remove an account in interactive mode
+blackwings accounts disconnect 
 ```
