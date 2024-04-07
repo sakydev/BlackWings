@@ -13,6 +13,11 @@ run: ## Run the application
 
 lint: ## Run linter
 	golangci-lint run -v  ./... --timeout=2m
+
+install: ## Install everything required
+	go install github.com/pressly/goose/v3/cmd/goose@latest
+	make migrate-fresh
+
 ##### Commands End #####
 
 ##### Migrations Start #####
