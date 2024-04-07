@@ -1,8 +1,8 @@
 package account
 
 import (
-	"BlackWings/internal/types"
-	"BlackWings/internal/utils"
+	"black-wings/internal/types"
+	"black-wings/internal/utils"
 	"fmt"
 
 	"github.com/spf13/cobra"

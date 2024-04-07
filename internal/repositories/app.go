@@ -1,7 +1,7 @@
 package repositories
 
 import (
-	"BlackWings/internal/types"
+	"black-wings/internal/types"
 	"context"
 	"database/sql"
 

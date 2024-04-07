@@ -1,7 +1,7 @@
 package services
 
 import (
-	"BlackWings/internal/types"
+	"black-wings/internal/types"
 	"fmt"
 )
 

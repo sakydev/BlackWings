@@ -1,9 +1,9 @@
 package search
 
 import (
-	"BlackWings/internal/services"
-	"BlackWings/internal/types"
-	"BlackWings/internal/utils"
+	"black-wings/internal/services"
+	"black-wings/internal/types"
+	"black-wings/internal/utils"
 	"fmt"
 
 	"github.com/spf13/cobra"

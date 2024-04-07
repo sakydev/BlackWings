@@ -1,8 +1,8 @@
 package repositories
 
 import (
-	"BlackWings/internal/types"
-	"BlackWings/internal/utils"
+	"black-wings/internal/types"
+	"black-wings/internal/utils"
 	"context"
 	"database/sql"
 

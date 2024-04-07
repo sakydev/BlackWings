@@ -1,9 +1,9 @@
 package services
 
 import (
-	"BlackWings/internal/services/apps"
-	"BlackWings/internal/services/integrations"
-	"BlackWings/internal/types"
+	"black-wings/internal/services/apps"
+	"black-wings/internal/services/integrations"
+	"black-wings/internal/types"
 	"context"
 	"database/sql"
 	"fmt"

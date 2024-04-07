@@ -1,4 +1,4 @@
-module BlackWings
+module black-wings
 
 go 1.21.4
 

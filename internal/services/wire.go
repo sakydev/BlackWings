@@ -1,7 +1,7 @@
 package services
 
 import (
-	"BlackWings/internal/services/apps"
+	"black-wings/internal/services/apps"
 
 	"github.com/samber/do"
 )
