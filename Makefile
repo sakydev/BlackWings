@@ -16,6 +16,7 @@ lint: ## Run linter
 
 install: ## Install everything required
 	go install github.com/pressly/goose/v3/cmd/goose@latest
+	go mod tidy
 	make migrate-fresh
 
 ##### Commands End #####

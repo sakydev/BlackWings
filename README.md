@@ -8,6 +8,13 @@ I often encounter situations where I remember something but can't remember where
 
 BlackWings is a Go-powered CLI built with Cobra and integrates with popular APIs. It authenticates once and uses tokens for further refreshses. You can add an unlimited number of accounts
 
+### Installation
+This will install Goose for database migrations and all other packages required and setup database.
+```
+git clone git@github.com:sakydev/black-wings.git
+cd black-wings && make install
+```
+
 ### Commands
 #### 1. Search
 Search command allows you to find items matching criteria
