@@ -16,22 +16,14 @@ import (
 
 const User = "me"
 
-type GmailMessageResponse struct {
-	Subject     string
-	SenderName  null.String
-	SenderEmail string
-	Date        time.Time
-	Snippet     string
-}
-
 func InjectGmailService(i *do.Injector) (*GmailService, error) {
 	return &GmailService{}, nil
 }
 
 type GmailService struct{}
 
-func (s GmailService) Search(ctx context.Context, options types.SearchFlags, client *http.Client) ([]GmailMessageResponse, error) {
-	var results []GmailMessageResponse
+func (s GmailService) Search(ctx context.Context, client *http.Client, options types.SearchFlags) ([]types.EmailResponse, error) {
+	var results []types.EmailResponse
 
 	srv, err := initialize(ctx, client)
 	if err != nil {
@@ -79,15 +71,15 @@ func (s GmailService) buildQuery(srv *gmail.Service, options types.SearchFlags) 
 	return query
 }
 
-func (s GmailService) getMessageDetails(srv *gmail.Service, user string, messageID string) (GmailMessageResponse, error) {
+func (s GmailService) getMessageDetails(srv *gmail.Service, user string, messageID string) (types.EmailResponse, error) {
 	message, err := srv.Users.Messages.Get(user, messageID).Do()
 	if err != nil {
-		return GmailMessageResponse{}, fmt.Errorf("error retrieving message %s: %v", messageID, err)
+		return types.EmailResponse{}, fmt.Errorf("error retrieving message %s: %v", messageID, err)
 	}
 
 	msg, err := srv.Users.Messages.Get(user, message.Id).Do()
 	if err != nil {
-		return GmailMessageResponse{}, fmt.Errorf("error retrieving message %s: %v", message.Id, err)
+		return types.EmailResponse{}, fmt.Errorf("error retrieving message %s: %v", message.Id, err)
 	}
 
 	var senderName, senderEmail, subject string
@@ -101,10 +93,10 @@ func (s GmailService) getMessageDetails(srv *gmail.Service, user string, message
 
 	readableTime, err := s.extractTime(msg.Payload.Headers[1].Value)
 	if err != nil {
-		return GmailMessageResponse{}, fmt.Errorf("error parsing date: %v", err)
+		return types.EmailResponse{}, fmt.Errorf("error parsing date: %v", err)
 	}
 
-	return GmailMessageResponse{
+	return types.EmailResponse{
 		Subject:     subject,
 		SenderName:  null.StringFrom(senderName),
 		SenderEmail: senderEmail,
