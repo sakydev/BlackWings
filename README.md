@@ -63,6 +63,18 @@ Accounts commands allow adding and removing accounts
 # list options
 blackwings accounts -h
 
+Usage:
+  black-wings accounts [flags]
+  black-wings accounts [command]
+
+Available Commands:
+  connect     Connect a new account
+  delete      Delete connected accounts
+  list        List connected accounts
+```
+
+Examples:
+```bash
 # connect a new account in interactive mode
 blackwings accounts connect
 
