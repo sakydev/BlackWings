@@ -16,6 +16,27 @@ Search command allows you to find items matching criteria
 # list options
 blackwings search -h
 
+Usage:
+  blackwings search [flags]
+
+Flags:
+      --after string         Results after date
+  -a, --apps strings         Apps to search
+      --before string        Results before date
+  -e, --exclude string       Results must exclude
+  -t, --file-types strings   File types to search
+  -h, --help                 help for search
+  -i, --include string       Results must include
+  -l, --limit int            Results limit (default 20)
+      --offset int           Results offset
+  -o, --order string         Order results by (default "desc")
+  -q, --query string         Search query
+  -s, --sort string          Sort results by (default "relevance")
+```
+
+Examples:
+```bash
+
 # search across all connected apps
 blackwings search --query "search query"
 
