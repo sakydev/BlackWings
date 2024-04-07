@@ -1,50 +1,63 @@
 package integrations
 
 import (
+	"black-wings/internal/repositories"
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
-	"os"
+	"time"
 
+	"github.com/samber/do"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/gmail/v1"
 )
 
-const (
-	credentialsFile = "credentials.json"
-	tokenFile       = "token.json"
-)
+func InjectGoogleService(i *do.Injector) (*GoogleService, error) {
+	return &GoogleService{
+		accountRepo: do.MustInvoke[repositories.AccountRepository](i),
+	}, nil
+}
 
-func InitializeGoogleService() (*http.Client, error) {
-	// Read credentials from file
-	credentials, err := os.ReadFile(credentialsFile)
+type GoogleService struct {
+	accountRepo repositories.AccountRepository
+}
+
+func (s *GoogleService) Init(ctx context.Context, database *sql.DB, accountId int64, credentials, savedToken string) (*http.Client, error) {
+	config, err := google.ConfigFromJSON([]byte(credentials), gmail.GmailReadonlyScope)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to read client secret file: %v", err)
+		return nil, fmt.Errorf("unable to parse client secret file to config: %v", err)
 	}
 
-	// Obtain OAuth2 configuration
-	config, err := google.ConfigFromJSON(credentials, gmail.GmailReadonlyScope)
+	token, err := jsonToToken(savedToken)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to parse client secret file to config: %v", err)
+		return nil, err
 	}
 
-	// Retrieve token from file
-	token, err := getTokenFromJSONFile(tokenFile)
-	if err != nil {
-		token = getTokenFromWeb(config)
-		saveToken(tokenFile, token)
+	if s.isTokenExpired(token) {
+		token = s.getTokenFromWeb(config)
+
+		tokenJSON, err := json.Marshal(token)
+		if err != nil {
+			return nil, fmt.Errorf("unable to marshal token response: %v", err)
+		}
+
+		err = s.accountRepo.UpdateToken(ctx, database, accountId, string(tokenJSON))
+		if err != nil {
+			return nil, fmt.Errorf("unable to update token: %v", err)
+		}
 	}
 
 	// Create OAuth2 HTTP client
-	client := config.Client(context.Background(), token)
+	client := config.Client(ctx, token)
 
 	return client, nil
 }
 
-func getTokenFromWeb(config *oauth2.Config) *oauth2.Token {
+func (s *GoogleService) getTokenFromWeb(config *oauth2.Config) *oauth2.Token {
 	authURL := config.AuthCodeURL("state-token", oauth2.AccessTypeOffline)
 	fmt.Printf("Go to the following link in your browser then type the authorization code: \n%v\n", authURL)
 
@@ -57,26 +70,25 @@ func getTokenFromWeb(config *oauth2.Config) *oauth2.Token {
 	if err != nil {
 		log.Fatalf("Unable to retrieve token from web: %v", err)
 	}
+
 	return token
 }
 
-func getTokenFromJSONFile(tokenFile string) (*oauth2.Token, error) {
-	f, err := os.Open(tokenFile)
-	if err != nil {
-		return nil, err
+func (s *GoogleService) isTokenExpired(token *oauth2.Token) bool {
+	if token.Expiry.IsZero() {
+		return false
 	}
-	defer f.Close()
-	tok := &oauth2.Token{}
-	err = json.NewDecoder(f).Decode(tok)
-	return tok, err
+
+	return token.Expiry.Before(time.Now())
 }
 
-func saveToken(tokenFile string, token *oauth2.Token) {
-	fmt.Printf("Saving credential file to: %s\n", tokenFile)
-	f, err := os.OpenFile(tokenFile, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
+func jsonToToken(tokenJSON string) (*oauth2.Token, error) {
+	var token oauth2.Token
+
+	err := json.Unmarshal([]byte(tokenJSON), &token)
 	if err != nil {
-		log.Fatalf("Unable to cache oauth token: %v", err)
+		return nil, fmt.Errorf("unable to unmarshal token: %v", err)
 	}
-	defer f.Close()
-	json.NewEncoder(f).Encode(token)
+
+	return &token, nil
 }
