@@ -59,7 +59,7 @@ func (s *GoogleService) Init(ctx context.Context, database *sql.DB, accountId in
 
 func (s *GoogleService) getTokenFromWeb(config *oauth2.Config) *oauth2.Token {
 	authURL := config.AuthCodeURL("state-token", oauth2.AccessTypeOffline)
-	fmt.Printf("Go to the following link in your browser then type the authorization code: \n%v\n", authURL)
+	fmt.Printf("Go to the following link in your browser and follow authentication steps. Once you are redirected after, copy value of &code= query parameter and paste below: \n\n%v\n", authURL)
 
 	var authCode string
 	if _, err := fmt.Scan(&authCode); err != nil {
