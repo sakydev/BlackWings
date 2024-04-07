@@ -20,6 +20,7 @@ type AccountRepository interface {
 	List(ctx context.Context, database *sql.DB) ([]types.Account, error)
 	ListByApps(ctx context.Context, database *sql.DB, appIDs []int64) ([]types.Account, error)
 	GetIDByIdentifier(ctx context.Context, database *sql.DB, name string) (int64, error)
+	UpdateToken(ctx context.Context, database *sql.DB, accountId int64, token string) error
 	Delete(ctx context.Context, database *sql.DB, accountID int64) error
 }
 
@@ -27,9 +28,9 @@ func (impl AccountImpl) Create(ctx context.Context, database *sql.DB, app types.
 	accountID := int64(0)
 	rows, err := database.ExecContext(ctx, `
 		INSERT INTO accounts
-		(name, client_id, client_secret, raw, app_id)
+		(name, client_id, client_secret, credentials_json, app_id)
 		VALUES ($1, $2, $3, $4, $5)
-	`, accountDetails.Name, accountDetails.ClientID, accountDetails.ClientSecret, accountDetails.Raw, app.ID)
+	`, accountDetails.Name, accountDetails.ClientID, accountDetails.ClientSecret, accountDetails.CredentialsJSON, app.ID)
 	if err != nil {
 		return accountID, err
 	}
@@ -46,7 +47,7 @@ func (impl AccountImpl) List(ctx context.Context, database *sql.DB) ([]types.Acc
 	var accounts []types.Account
 
 	rows, err := database.QueryContext(ctx, `
-		SELECT ac.name, ac.client_id, ac.client_secret, ac.raw, ap.id, ap.name, ap.provider
+		SELECT ac.id, ac.name, ac.client_id, ac.client_secret, ac.credentials_json, ac.token_json, ap.id, ap.name, ap.provider
 		FROM accounts ac
 		INNER JOIN apps ap ON ac.app_id = ap.id
 	`)
@@ -64,7 +65,7 @@ func (impl AccountImpl) ListByApps(ctx context.Context, database *sql.DB, appIDs
 	var accounts []types.Account
 
 	rows, err := database.QueryContext(ctx, `
-		SELECT ac.name, ac.client_id, ac.client_secret, ac.raw, ap.id, ap.name, ap.provider
+		SELECT ac.id, ac.name, ac.client_id, ac.client_secret, ac.credentials_json, ac.token_json, ap.id, ap.name, ap.provider
 		FROM accounts ac
 		INNER JOIN apps ap ON ac.app_id = ap.id
 		WHERE ap.id IN ($1)
@@ -96,6 +97,16 @@ func (impl AccountImpl) GetIDByIdentifier(ctx context.Context, database *sql.DB,
 	return accountID, nil
 }
 
+func (impl AccountImpl) UpdateToken(ctx context.Context, database *sql.DB, accountId int64, token string) error {
+	_, err := database.ExecContext(ctx, `
+		UPDATE accounts
+		SET token_json = $1
+		WHERE id = $2
+	`, token, accountId)
+
+	return err
+}
+
 func (impl AccountImpl) Delete(ctx context.Context, database *sql.DB, accountID int64) error {
 	_, err := database.ExecContext(ctx, `
 		DELETE FROM accounts
@@ -110,21 +121,23 @@ func processAccountRows(rows *sql.Rows) ([]types.Account, error) {
 
 	for rows.Next() {
 		var currentAccount types.Account
-		var appID int
-		var accountName, clientID, clientSecret, raw, appName, provider string
+		var appID, accountID int64
+		var accountName, clientID, clientSecret, credentialsJson, tokenJson, appName, provider string
 
-		err := rows.Scan(&accountName, &clientID, &clientSecret, &raw, &appID, &appName, &provider)
+		err := rows.Scan(&accountID, &accountName, &clientID, &clientSecret, &credentialsJson, &tokenJson, &appID, &appName, &provider)
 		if err != nil {
 			return accounts, err
 		}
 
 		currentAccount = types.Account{
-			Name:         accountName,
-			ClientID:     clientID,
-			ClientSecret: clientSecret,
-			Raw:          raw,
+			ID:              accountID,
+			Name:            accountName,
+			ClientID:        clientID,
+			ClientSecret:    clientSecret,
+			CredentialsJSON: credentialsJson,
+			TokenJSON:       tokenJson,
 			App: types.App{
-				ID:       int64(appID),
+				ID:       appID,
 				Name:     appName,
 				Provider: provider,
 			},
