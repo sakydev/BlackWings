@@ -106,7 +106,7 @@ func askAccountDetails(app types.App) (types.Account, error) {
 			Validate: survey.Required,
 		},
 		{
-			Name: "raw",
+			Name: "credentialsJson",
 			Prompt: &survey.Input{
 				Message: "Enter Raw Data (if any):",
 			},

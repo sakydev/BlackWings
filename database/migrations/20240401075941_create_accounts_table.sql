@@ -5,7 +5,8 @@ CREATE TABLE accounts (
     name varchar NOT NULL,
     client_id TEXT,
     client_secret TEXT,
-    raw TEXT,
+    credentials_json TEXT,
+    token_json TEXT,
     app_id INTEGER,
     FOREIGN KEY (app_id) REFERENCES apps(id)
 );
