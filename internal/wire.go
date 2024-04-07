@@ -1,8 +1,8 @@
 package internal
 
 import (
-	"BlackWings/internal/repositories"
-	"BlackWings/internal/services"
+	"black-wings/internal/repositories"
+	"black-wings/internal/services"
 
 	"github.com/samber/do"
 )

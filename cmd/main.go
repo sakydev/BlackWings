@@ -1,11 +1,12 @@
 package main
 
 import (
-	"BlackWings/cmd/search"
-	db "BlackWings/database"
-	"BlackWings/internal"
-	"BlackWings/internal/repositories"
-	"BlackWings/internal/types"
+	"black-wings/cmd/account"
+	"black-wings/cmd/search"
+	db "black-wings/database"
+	"black-wings/internal"
+	"black-wings/internal/repositories"
+	"black-wings/internal/types"
 	"context"
 	"database/sql"
 	"fmt"
@@ -17,7 +18,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const AppName = "blackwings"
+const AppName = "black-wings"
 
 var settings map[string]string
 
@@ -50,8 +51,10 @@ func main() {
 		Format:   format,
 	}
 	searchCommand := search.NewSearchCommand(commandConfiguration)
+	accountCommands := account.NewAccountCommands(commandConfiguration)
 
 	coreCommand.AddCommand(searchCommand)
+	coreCommand.AddCommand(accountCommands)
 
 	err := coreCommand.Execute()
 	if err != nil {

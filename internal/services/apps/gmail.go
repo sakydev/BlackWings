@@ -1,7 +1,7 @@
 package apps
 
 import (
-	"BlackWings/internal/types"
+	"black-wings/internal/types"
 	"context"
 	"fmt"
 	"net/http"

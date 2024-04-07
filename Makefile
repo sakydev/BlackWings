@@ -13,6 +13,12 @@ run: ## Run the application
 
 lint: ## Run linter
 	golangci-lint run -v  ./... --timeout=2m
+
+install: ## Install everything required
+	go install github.com/pressly/goose/v3/cmd/goose@latest
+	go mod tidy
+	make migrate-fresh
+
 ##### Commands End #####
 
 ##### Migrations Start #####
@@ -23,7 +29,8 @@ migrate-down: ## Revert all open migrations
 	goose -dir $(MIGRATIONS_DIR) sqlite3 $(DATABASE_FILE) down
 
 migrate-fresh: ## Drop database and run all migrations
-	make migrate-down && make migrate-up
+	rm -rf $(DATABASE_FILE) && touch $(DATABASE_FILE)
+	make migrate-up
 
 migrate-create: ## Create a new migration
 	goose -dir $(MIGRATIONS_DIR) create $(NAME) sql

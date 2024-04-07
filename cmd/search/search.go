@@ -1,9 +1,9 @@
 package search
 
 import (
-	"BlackWings/internal/services"
-	"BlackWings/internal/types"
-	"BlackWings/internal/utils"
+	"black-wings/internal/services"
+	"black-wings/internal/types"
+	"black-wings/internal/utils"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -11,7 +11,7 @@ import (
 
 const mainCommand = "search"
 
-func NewSearchCommand(commandConfiguration types.CommandConfiguration) *cobra.Command {
+func NewSearchCommand(cmdConfig types.CommandConfiguration) *cobra.Command {
 	var flags types.SearchFlags
 
 	searchCommand := &cobra.Command{
@@ -24,17 +24,17 @@ func NewSearchCommand(commandConfiguration types.CommandConfiguration) *cobra.Co
 				return throwError("failed to validate search flags", validationError)
 			}
 
-			searchService, err := services.InjectSearchService(commandConfiguration.Injector)
+			searchService, err := services.InjectSearchService(cmdConfig.Injector)
 			if err != nil {
 				return throwError("failed to inject search service", err)
 			}
 
-			results, err := searchService.Search(commandConfiguration.Context, commandConfiguration.Database, flags)
+			results, err := searchService.Search(cmdConfig.Context, cmdConfig.Database, flags)
 			if err != nil {
 				return throwError("failed to search", err)
 			}
 
-			err = displayOutput(commandConfiguration.Format, results)
+			err = displayOutput(cmdConfig.Format, results)
 			if err != nil {
 				return throwError("failed to display output", err)
 			}
