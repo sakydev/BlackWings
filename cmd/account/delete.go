@@ -14,8 +14,8 @@ func NewAccountDeleteCommand(cmdConfig types.CommandConfiguration) *cobra.Comman
 
 	listCommand := &cobra.Command{
 		Use:   deleteCommandName,
-		Short: "List connected accounts",
-		Long:  `List all connected accounts or filter by app.`,
+		Short: "Delete connected accounts",
+		Long:  `Delete a connect account`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			accountService, err := services.InjectAccountService(cmdConfig.Injector)
 			if err != nil {
