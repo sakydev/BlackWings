@@ -5,7 +5,7 @@ import (
 	"black-wings/internal/utils"
 	"context"
 	"database/sql"
-
+	"github.com/guregu/null/v5"
 	"github.com/samber/do"
 )
 
@@ -58,7 +58,7 @@ func (impl AccountImpl) List(ctx context.Context, database *sql.DB) ([]types.Acc
 
 	accounts, err = processAccountRows(rows)
 
-	return accounts, nil
+	return accounts, err
 }
 
 func (impl AccountImpl) ListByApps(ctx context.Context, database *sql.DB, appIDs []int64) ([]types.Account, error) {
@@ -122,7 +122,8 @@ func processAccountRows(rows *sql.Rows) ([]types.Account, error) {
 	for rows.Next() {
 		var currentAccount types.Account
 		var appID, accountID int64
-		var accountName, clientID, clientSecret, credentialsJson, tokenJson, appName, provider string
+		var accountName, clientID, clientSecret, credentialsJson, appName, provider string
+		var tokenJson null.String
 
 		err := rows.Scan(&accountID, &accountName, &clientID, &clientSecret, &credentialsJson, &tokenJson, &appID, &appName, &provider)
 		if err != nil {
@@ -135,7 +136,7 @@ func processAccountRows(rows *sql.Rows) ([]types.Account, error) {
 			ClientID:        clientID,
 			ClientSecret:    clientSecret,
 			CredentialsJSON: credentialsJson,
-			TokenJSON:       tokenJson,
+			TokenJSON:       tokenJson.String,
 			App: types.App{
 				ID:       appID,
 				Name:     appName,

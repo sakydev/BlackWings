@@ -15,6 +15,8 @@ import (
 )
 
 const User = "me"
+const gmailServiceName = "gmail"
+const gmailResponseType = "message"
 
 func InjectGmailService(i *do.Injector) (*GmailService, error) {
 	return &GmailService{}, nil
@@ -22,8 +24,8 @@ func InjectGmailService(i *do.Injector) (*GmailService, error) {
 
 type GmailService struct{}
 
-func (s GmailService) Search(ctx context.Context, client *http.Client, options types.SearchFlags) ([]types.EmailResponse, error) {
-	var results []types.EmailResponse
+func (s GmailService) Search(ctx context.Context, client *http.Client, options types.SearchFlags, accountIdentifier string) ([]types.SearchResult, error) {
+	var results []types.SearchResult
 
 	srv, err := initialize(ctx, client)
 	if err != nil {
@@ -46,7 +48,18 @@ func (s GmailService) Search(ctx context.Context, client *http.Client, options t
 			return results, err
 		}
 
-		results = append(results, messageDetails)
+		title := fmt.Sprintf("%s by %s: %s", messageDetails.Subject, messageDetails.SenderName.String, messageDetails.SenderEmail)
+		currentResult := types.SearchResult{
+			Account:     accountIdentifier,
+			Service:     gmailServiceName,
+			Title:       title,
+			Description: messageDetails.Snippet,
+			Date:        messageDetails.Date.String(),
+			Link:        "",
+			Type:        gmailResponseType,
+		}
+
+		results = append(results, currentResult)
 	}
 
 	return results, nil
@@ -91,17 +104,17 @@ func (s GmailService) getMessageDetails(srv *gmail.Service, user string, message
 		}
 	}
 
-	readableTime, err := s.extractTime(msg.Payload.Headers[1].Value)
+	/*readableTime, err := s.extractTime(msg.Payload.Headers[1].Value)
 	if err != nil {
 		return types.EmailResponse{}, fmt.Errorf("error parsing date: %v", err)
-	}
+	}*/
 
 	return types.EmailResponse{
 		Subject:     subject,
 		SenderName:  null.StringFrom(senderName),
 		SenderEmail: senderEmail,
-		Date:        readableTime,
-		Snippet:     msg.Snippet,
+		//Date:        readableTime,
+		Snippet: msg.Snippet,
 	}, nil
 }
 
@@ -120,7 +133,7 @@ func (s GmailService) extractSender(fromHeader string) (name, email string) {
 }
 
 func (s GmailService) extractTime(timestamp string) (time.Time, error) {
-	timeLayout := "Mon, 02 Jan 2006 15:04:05 -0700 (MST)"
+	timeLayout := "Mon, 02 Jan 2006 15:04:05 -0700 (PDT)"
 
 	parts := strings.Split(timestamp, ";")
 	if len(parts) != 2 {
