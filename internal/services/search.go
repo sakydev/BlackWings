@@ -27,7 +27,7 @@ type ProviderService interface {
 }
 
 type AccountSearchService interface {
-	Search(ctx context.Context, client *http.Client, options types.SearchFlags) ([]types.EmailResponse, error)
+	Search(ctx context.Context, client *http.Client, options types.SearchFlags, accountIdtentifier string) ([]types.SearchResult, error)
 }
 
 type SearchService struct {
@@ -41,8 +41,8 @@ type SearchService struct {
 	accountRepo repositories.AccountRepository
 }
 
-func (s SearchService) Search(ctx context.Context, database *sql.DB, options types.SearchFlags) ([]types.EmailResponse, error) {
-	var results []types.EmailResponse
+func (s SearchService) Search(ctx context.Context, database *sql.DB, options types.SearchFlags) ([]types.SearchResult, error) {
+	var results []types.SearchResult
 
 	accounts, err := s.accountRepo.List(ctx, database)
 	if err != nil {
@@ -69,7 +69,7 @@ func (s SearchService) Search(ctx context.Context, database *sql.DB, options typ
 			return nil, fmt.Errorf("failed to get account search service %s: %w", account.App.Name, err)
 		}
 
-		currentResults, err := accountSearchService.Search(ctx, provider, options)
+		currentResults, err := accountSearchService.Search(ctx, provider, options, account.Name)
 		if err != nil {
 			return nil, fmt.Errorf("failed to search account: %w", err)
 		}
