@@ -33,11 +33,7 @@ func (s *GoogleService) Init(ctx context.Context, database *sql.DB, accountId in
 	}
 
 	token, err := jsonToToken(savedToken)
-	if err != nil {
-		return nil, err
-	}
-
-	if s.isTokenExpired(token) {
+	if err != nil || s.isTokenExpired(token) {
 		token = s.getTokenFromWeb(config)
 
 		tokenJSON, err := json.Marshal(token)
