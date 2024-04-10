@@ -3,7 +3,6 @@ package account
 import (
 	"black-wings/internal/services"
 	"black-wings/internal/types"
-
 	"github.com/spf13/cobra"
 )
 
