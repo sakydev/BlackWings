@@ -15,6 +15,8 @@ import (
 )
 
 const User = "me"
+const gmailServiceName = "gmail"
+const gmailResponseType = "message"
 
 func InjectGmailService(i *do.Injector) (*GmailService, error) {
 	return &GmailService{}, nil
@@ -46,14 +48,15 @@ func (s GmailService) Search(ctx context.Context, client *http.Client, options t
 			return results, err
 		}
 
+		title := fmt.Sprintf("%s by %s: %s", messageDetails.Subject, messageDetails.SenderName.String, messageDetails.SenderEmail)
 		currentResult := types.SearchResult{
 			Account:     accountIdentifier,
-			Service:     "gmail",
-			Title:       messageDetails.Subject,
+			Service:     gmailServiceName,
+			Title:       title,
 			Description: messageDetails.Snippet,
 			Date:        messageDetails.Date.String(),
 			Link:        "",
-			Type:        "message",
+			Type:        gmailResponseType,
 		}
 
 		results = append(results, currentResult)
